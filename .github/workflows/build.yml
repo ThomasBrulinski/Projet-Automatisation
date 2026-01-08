@@ -41,6 +41,6 @@ jobs:
           # Remplacez les valeurs ci-dessous par celles de votre compte SonarQube
           args: >
             -Dsonar.organization=thomasbrulinski
-            -Dsonar.projectKey=thomasbrulinski
+            -Dsonar.projectKey=ThomasBrulinski_Projet-Automatisation
             -Dsonar.sources=.
             -Dsonar.verbose=true
