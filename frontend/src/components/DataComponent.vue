@@ -14,7 +14,7 @@ const fetchMigrations = async (pageOffset = 0) => {
 
   isLoadingData.value = true;
   try {
-    const response = await fetch(`http://localhost:8000/api/files?page=${newPage}&query=${encodeURIComponent(searchQuery.value)}`);
+    const response = await fetch(`http://localhost:8000/api/files/?page=${newPage}&query=${encodeURIComponent(searchQuery.value)}`);
     if (!response.ok) throw new Error("Erreur lors du chargement");
     
     const data = await response.json();
