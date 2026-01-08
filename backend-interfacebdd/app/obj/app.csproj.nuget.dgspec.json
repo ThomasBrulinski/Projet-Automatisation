@@ -1,20 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Ecole\\BUT3\\Auto production app\\projet\\backend-interfacebdd\\app\\app.csproj": {}
+    "c:\\Users\\bruli\\BUT3\\Automatisation de la chaine de production\\Projet-Automatisation\\backend-interfacebdd\\app\\app.csproj": {}
   },
   "projects": {
-    "C:\\Ecole\\BUT3\\Auto production app\\projet\\backend-interfacebdd\\app\\app.csproj": {
+    "c:\\Users\\bruli\\BUT3\\Automatisation de la chaine de production\\Projet-Automatisation\\backend-interfacebdd\\app\\app.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Ecole\\BUT3\\Auto production app\\projet\\backend-interfacebdd\\app\\app.csproj",
+        "projectUniqueName": "c:\\Users\\bruli\\BUT3\\Automatisation de la chaine de production\\Projet-Automatisation\\backend-interfacebdd\\app\\app.csproj",
         "projectName": "app",
-        "projectPath": "C:\\Ecole\\BUT3\\Auto production app\\projet\\backend-interfacebdd\\app\\app.csproj",
-        "packagesPath": "C:\\Users\\valen\\.nuget\\packages\\",
-        "outputPath": "C:\\Ecole\\BUT3\\Auto production app\\projet\\backend-interfacebdd\\app\\obj\\",
+        "projectPath": "c:\\Users\\bruli\\BUT3\\Automatisation de la chaine de production\\Projet-Automatisation\\backend-interfacebdd\\app\\app.csproj",
+        "packagesPath": "C:\\Users\\bruli\\.nuget\\packages\\",
+        "outputPath": "c:\\Users\\bruli\\BUT3\\Automatisation de la chaine de production\\Projet-Automatisation\\backend-interfacebdd\\app\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\valen\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\bruli\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -48,15 +52,15 @@
           "dependencies": {
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
-              "version": "[9.0.9, )"
+              "version": "[9.0.0, )"
             },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[8.0.2, )"
+              "version": "[9.0.2, )"
             },
             "Pomelo.EntityFrameworkCore.MySql": {
               "target": "Package",
-              "version": "[8.0.2, )"
+              "version": "[9.0.0, )"
             }
           },
           "imports": [
@@ -78,7 +82,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
