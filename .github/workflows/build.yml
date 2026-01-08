@@ -32,3 +32,15 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         # SonarQube détectera automatiquement les fichiers Python dans backend-traitement
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          # Remplacez les valeurs ci-dessous par celles de votre compte SonarQube
+          args: >
+            -Dsonar.organization=SONAR_TOKEN
+            -Dsonar.projectKey=a45ba6549e356f310a9e64474b00bdf5ba175a73
+            -Dsonar.sources=.
+            -Dsonar.verbose=true
