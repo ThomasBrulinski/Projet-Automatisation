@@ -1,0 +1,52 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - 8080:8080
+    restart: always
+    networks:
+      - res1
+    depends_on:
+      - backend-traitement
+  backend-traitement:
+    build: ./backend-traitement
+    ports:
+      - 8000:8000
+    restart: always
+    networks:
+      - res1
+      - res2
+    depends_on:
+      - backend-interfacebdd
+  backend-interfacebdd:
+    build: ./backend-interfacebdd
+    restart: always
+    networks:
+      - res2
+      - res3
+    depends_on:
+      bdd:
+        condition: service_healthy
+  bdd:
+    image: mariadb:10.6-focal
+    restart: always
+    environment:
+      - MARIADB_ROOT_PASSWORD=${DB_PWD}
+      - MARIADB_DATABASE=${DB_NAME}
+    volumes:
+      - ./bdd/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-padmin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - res3
+  
+networks:
+  res1:
+    driver: bridge
+  res2:
+    driver: bridge
+  res3:
+    driver: bridge
