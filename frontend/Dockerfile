@@ -15,8 +15,11 @@ RUN npm install
 # copie les fichiers et dossiers du projet dans le dossier de travail (par exemple : le dossier 'app')
 COPY . .
 
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 # construit l'app pour la production en la minifiant
 RUN npm run build
 
-EXPOSE 8080
-CMD [ "http-server", "dist" ]
+EXPOSE 8081
+CMD [ "http-server", "dist", "-p", "8081" ]

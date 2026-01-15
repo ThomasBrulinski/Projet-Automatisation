@@ -8,29 +8,34 @@ const currentPage = ref(0);
 const searchQuery = ref("");
 
 const fetchMigrations = async (pageOffset = 0) => {
-  // On calcule la nouvelle page demandée
   const newPage = currentPage.value + pageOffset;
-  if (newPage < 0) return; // Empêche d'aller en dessous de 0
+  // Utilisation du chemin relatif comme convenu précédemment
+  const apiUrl = "/api/files/";
+  
+  if (newPage < 0) return;
 
   isLoadingData.value = true;
+  message.value = ""; // Reset message
+
   try {
-    const response = await fetch(`http://localhost:8000/api/files/?page=${newPage}&query=${encodeURIComponent(searchQuery.value)}`);
-    if (!response.ok) throw new Error("Erreur lors du chargement");
+    const response = await fetch(`${apiUrl}?page=${newPage}&query=${encodeURIComponent(searchQuery.value)}`);
+    
+    if (!response.ok) throw new Error("Erreur serveur");
     
     const data = await response.json();
     
-    // Si on a des données, on met à jour la liste et la page actuelle
     if (data.length > 0) {
       migrations.value = data;
       currentPage.value = newPage;
     } else if (pageOffset === 0) {
-      // Si c'est le premier chargement et que c'est vide
-      migrations.value = [];
+      migrations.value = []; // Recherche vide
     } else {
-      message.value = "Fin des données disponibles.";
+      // On garde les anciennes données si on est en bout de liste
+      // mais on peut notifier l'utilisateur (toast ou autre)
     }
   } catch (error) {
-    message.value = "Impossible de charger les données.";
+    message.value = "Impossible de contacter le serveur.";
+    console.error(error);
   } finally {
     isLoadingData.value = false;
   }
@@ -38,237 +43,397 @@ const fetchMigrations = async (pageOffset = 0) => {
 </script>
 
 <template>
-  <main class="flex min-h-screen flex-col items-center justify-center p-6 bg-gray-50">
-    <div class="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
-      <button 
-        @click="() => fetchMigrations()"
-        :disabled="isLoadingData"
-        class="btn-fetch"
-      >
-        {{ isLoadingData ? 'Chargement...' : 'Afficher les données de la BD' }}
-      </button>
-
-      <div class="search-container">
-        <input 
-          v-model="searchQuery" 
-          type="text" 
-          placeholder="Rechercher (Titre, SubJob ID...)" 
-          @keyup.enter="() => fetchMigrations(0)"
-          class="search-input"
-        />
-        <button @click="() => fetchMigrations(0)" class="search-btn">🔍</button>
+  <div class="dashboard-container">
+    
+    <header class="dashboard-header">
+      <div class="header-content">
+        <h1>📊 Moniteur de Migration</h1>
+        <p class="subtitle">Suivi des transferts de fichiers en temps réel</p>
       </div>
-
-      <div v-if="migrations.length > 0" class="table-container">
-        <table class="excel-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>SubJob ID</th>
-              <th>Titre</th>
-              <th>Type</th>
-              <th>SourceID</th>
-              <th>Source</th>
-              <th>DestinationID</th>
-              <th>Destination</th>
-              <th>Statut</th>
-              <th>Taille</th>
-              <th>Code Erreur</th>
-              <th>Commentaire</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="m in migrations" :key="m.id">
-              <td>{{ m.migrationStartTime }}</td>
-              <td class="font-mono">{{ m.subJobId }}</td>
-              <td>{{ m.title }}</td>
-              <td>{{ m.type }}</td>
-              <td class="font-mono">{{ m.sourceId }}</td>
-              <td>{{ m.source }}</td>
-              <td class="font-mono">{{ m.destinationId }}</td>
-              <td>{{ m.destination }}</td>
-              <td>
-                <span :class="['badge', m.status === 'Successful' ? 'success' : 'error']">
-                  {{ m.status }}
-                </span>
-              </td>
-              <td>{{ m.size }}</td>
-              <td class="text-error">{{ m.errorCode || '-' }}</td>
-              <td class="comment-cell">{{ m.comment || '-' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div v-if="migrations.length > 0" class="pagination-controls">
-        <button 
-          @click="() => fetchMigrations(-1)" 
-          :disabled="currentPage === 0 || isLoadingData"
-          class="page-btn"
-        >
-          ← Précédent
-        </button>
-        
-        <span class="page-info">Page {{ currentPage + 1 }}</span>
+      
+      <div class="actions-bar">
+        <div class="search-wrapper">
+          <span class="search-icon">🔍</span>
+          <input 
+            v-model="searchQuery" 
+            type="text" 
+            placeholder="Rechercher (Source)" 
+            @keyup.enter="() => fetchMigrations(0)"
+            class="search-input"
+          />
+        </div>
         
         <button 
-          @click="() => fetchMigrations(1)" 
-          :disabled="isLoadingData || migrations.length < 20"
-          class="page-btn"
+          @click="() => fetchMigrations(0)"
+          :disabled="isLoadingData"
+          class="btn-primary"
         >
-          Suivant →
+          <span v-if="isLoadingData" class="loader"></span>
+          <span v-else>Actualiser</span>
         </button>
       </div>
-    </div>
-  </main>
+    </header>
+
+    <main class="main-content">
+      
+      <div v-if="migrations.length === 0 && !isLoadingData" class="empty-state">
+        <div class="empty-icon">📁</div>
+        <h3>Aucune donnée à afficher</h3>
+        <p>Lancez une recherche ou cliquez sur Actualiser pour voir les migrations.</p>
+        <button @click="() => fetchMigrations(0)" class="btn-secondary">Charger les données</button>
+      </div>
+
+      <div v-else class="table-card">
+        <div class="table-responsive">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>SubJob ID</th>
+                <th>Titre</th>
+                <th>Type</th>
+                <th>Source</th>
+                <th>Destination</th>
+                <th>Statut</th>
+                <th>Taille</th>
+                <th>Code</th>
+                <th>Info</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="m in migrations" :key="m.id">
+                <td class="whitespace-nowrap">{{ new Date(m.migrationStartTime).toLocaleString() }}</td>
+                <td class="font-mono text-sm">{{ m.subJobId }}</td>
+                <td class="font-bold">{{ m.title }}</td>
+                <td><span class="tag-type">{{ m.type }}</span></td>
+                
+                <td>
+                  <div class="path-cell">
+                    <span class="path-id">ID: {{ m.sourceId }}</span>
+                    <span class="path-text" :title="m.source">{{ m.source }}</span>
+                  </div>
+                </td>
+                
+                <td>
+                  <div class="path-cell">
+                    <span class="path-id">ID: {{ m.destinationId }}</span>
+                    <span class="path-text" :title="m.destination">{{ m.destination }}</span>
+                  </div>
+                </td>
+                
+                <td>
+                  <span :class="['status-badge', m.status === 'Successful' ? 'status-success' : 'status-error']">
+                    {{ m.status === 'Successful' ? 'Succès' : 'Erreur' }}
+                  </span>
+                </td>
+                
+                <td class="font-mono">{{ m.size }}</td>
+                <td class="text-red-500 font-bold">{{ m.errorCode || '-' }}</td>
+                <td class="comment-cell" :title="m.comment">{{ m.comment || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination-footer">
+          <button 
+            @click="() => fetchMigrations(-1)" 
+            :disabled="currentPage === 0 || isLoadingData"
+            class="btn-nav"
+          >
+            &larr; Précédent
+          </button>
+          
+          <span class="page-indicator">Page {{ currentPage + 1 }}</span>
+          
+          <button 
+            @click="() => fetchMigrations(1)" 
+            :disabled="isLoadingData || migrations.length < 20"
+            class="btn-nav"
+          >
+            Suivant &rarr;
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
 </template>
 
 <style scoped>
-
-  /* Style pour harmoniser la zone d'import avec le tableau */
-.max-w-md {
-  max-width: 900px !important; /* On élargit pour que le tableau soit à l'aise */
-}
-
-/* Contrôles de pagination */
-.pagination-controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  margin-top: 15px;
-  padding: 10px;
-  background-color: #fff;
-}
-
-.page-btn {
-  padding: 8px 16px;
+/* --- RESET & LAYOUT --- */
+.dashboard-container {
+  min-height: 100vh;
   background-color: #f3f4f6;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-header {
+  background-color: white;
+  padding: 1rem 2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.header-content h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #111827;
+}
+
+.subtitle {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  /* C'est ICI qu'on règle la largeur : 95% de l'écran, centré, max 1600px */
+  width: 95%;
+  max-width: 1600px; 
+  margin: 0 auto;
+}
+
+/* --- BARRE D'ACTIONS --- */
+.actions-bar {
+  display: flex;
+  gap: 12px;
+}
+
+.search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  color: #9ca3af;
+}
+
+.search-input {
+  padding: 10px 10px 10px 35px;
   border: 1px solid #d1d5db;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
+  border-radius: 8px;
+  width: 250px;
+  outline: none;
   transition: all 0.2s;
 }
 
-.page-btn:hover:not(:disabled) {
-  background-color: #e5e7eb;
+.search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  width: 300px;
 }
 
-.page-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.page-info {
-  font-size: 14px;
-  font-weight: bold;
-  color: #4b5563;
-}
-
-/* Correction de la table-container pour éviter qu'elle soit trop petite */
-.table-container {
-  max-height: 500px;
-  overflow-y: auto;
-}
-
-.table-container {
-  margin-top: 20px;
-  width: 100%;
-  overflow-x: auto;
-  border: 1px solid #ddd;
+.btn-primary {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 20px;
   border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100px;
 }
 
-.excel-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: sans-serif;
-  font-size: 14px;
+.btn-primary:hover:not(:disabled) {
+  background-color: #1d4ed8;
 }
 
-.excel-table th {
-  background-color: #f4f4f4;
-  padding: 12px;
-  text-align: left;
-  border-bottom: 2px solid #ddd;
-  border-right: 1px solid #ddd;
-  color: #333;
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: wait;
 }
 
-.excel-table td {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-  border-right: 1px solid #ddd;
-}
-
-.excel-table tr:hover {
-  background-color: #f9f9f9;
-  color: #333;
-}
-
-.font-mono { font-family: monospace; font-size: 12px; }
-
-.badge {
-  padding: 4px 8px;
+/* --- TABLEAU --- */
+.table-card {
+  background: white;
   border-radius: 12px;
-  font-size: 11px;
-  font-weight: bold;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  overflow: hidden; /* Important pour les coins arrondis */
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 180px); /* Hauteur dynamique pour rester dans l'écran */
 }
 
-.success { background-color: #dcfce7; color: #166534; }
-.error { background-color: #fee2e2; color: #991b1b; }
+.table-responsive {
+  overflow: auto;
+  flex: 1;
+}
 
-.comment-cell {
+.modern-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+}
+
+.modern-table th {
+  background-color: #f9fafb;
+  color: #374151;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 16px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.modern-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #1f2937;
+  vertical-align: middle;
+}
+
+.modern-table tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* --- CELLULES SPÉCIFIQUES --- */
+.path-cell {
+  display: flex;
+  flex-direction: column;
   max-width: 200px;
+}
+
+.path-id {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  font-family: monospace;
+}
+
+.path-text {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.btn-fetch {
-  width: 100%;
-  background-color: #10b981;
-  color: white;
-  padding: 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  margin-top: 10px;
+.tag-type {
+  background-color: #eff6ff;
+  color: #1e40af;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
-.btn-fetch:disabled { opacity: 0.5; cursor: not-allowed; }
+.status-badge {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
 
-.search-container {
+.status-success {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-error {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.comment-cell {
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.font-mono { font-family: 'Courier New', Courier, monospace; }
+.whitespace-nowrap { white-space: nowrap; }
+
+/* --- FOOTER PAGINATION --- */
+.pagination-footer {
+  padding: 12px 20px;
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
   display: flex;
-  margin-top: 15px;
-  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px;
 }
 
-.search-input {
-  flex: 1;
-  padding: 10px 15px;
+.btn-nav {
+  background: white;
   border: 1px solid #d1d5db;
+  padding: 6px 12px;
   border-radius: 6px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s;
+  cursor: pointer;
+  color: #374151;
+  transition: all 0.2s;
 }
 
-.search-input:focus {
-  border-color: #10b981;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+.btn-nav:hover:not(:disabled) {
+  border-color: #2563eb;
+  color: #2563eb;
 }
 
-.search-btn {
-  padding: 0 15px;
-  background-color: #f3f4f6;
+.btn-nav:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- EMPTY STATE --- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.btn-secondary {
+  margin-top: 15px;
+  background: white;
   border: 1px solid #d1d5db;
+  padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
 }
 
-.search-btn:hover {
-  background-color: #e5e7eb;
+/* --- LOADER --- */
+.loader {
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top: 2px solid white;
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

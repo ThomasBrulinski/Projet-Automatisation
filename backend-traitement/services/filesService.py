@@ -3,6 +3,7 @@ import io
 import json
 import requests
 import hashlib
+import os
 
 class FilesService:
     def read_csv_and_stream(self, file, batch_size=50):
@@ -59,7 +60,10 @@ class FilesService:
                 })
             
             total_lines = len(formatted_results)
-            csharp_url = "http://backend-interfacebdd:8080/api/migration/"
+            csharp_url = os.environ.get('C_SHARP_URL')
+
+            if not csharp_url:
+                raise Exception(".env non configuré")
             
             def generate():
                 if total_lines == 0:
@@ -114,9 +118,17 @@ class FilesService:
             return error_gen()
     
     def load_data_from_db(self, page, query):
-        csharp_url = f"http://backend-interfacebdd:8080/api/migration/?page={page}&query={query}"
+        base_url = os.environ.get('C_SHARP_URL')
+        if not base_url:
+            raise Exception(".env non configuré")
+        
+        params = {
+            'page': page,
+            'query': query
+        }
+
         try:
-            r = requests.get(csharp_url, timeout=10)
+            r = requests.get(base_url, params=params, timeout=10)
             r.raise_for_status()
             return r.json() # On renvoie la liste Python brute
         except requests.exceptions.RequestException as e:

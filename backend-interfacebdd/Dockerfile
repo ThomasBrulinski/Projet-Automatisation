@@ -19,5 +19,7 @@ WORKDIR /app
 # Copier les fichiers publiés depuis l'étape de build
 COPY --from=build /publish .
 
-EXPOSE 8080
+ENV ASPNETCORE_URLS=http://+:5000
+
+EXPOSE 5000
 ENTRYPOINT ["dotnet", "app.dll"]

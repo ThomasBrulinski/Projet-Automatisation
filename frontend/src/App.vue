@@ -42,6 +42,9 @@ body, html {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: 100%;       /* Prend toute la largeur de #app */
+  margin: 0;
+  padding: 0;
 }
 
 /* Header Fixe */
@@ -49,19 +52,18 @@ body, html {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px); /* Effet flou moderne */
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid #e5e7eb;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 2rem; /* Plus d'espace sur les côtés */
 }
 
 .navbar-content {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* Sépare le logo des liens */
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
+  justify-content: space-between;
+  /* On enlève le max-width: 1200px pour que le menu suive la largeur du tableau */
+  width: 100%; 
 }
 
 .logo-section {
@@ -109,7 +111,9 @@ body, html {
 
 /* Zone de contenu */
 .main-content {
-  flex-grow: 1; /* Prend toute la place restante */
-  padding-top: 2rem; /* Espace sous le header */
+  flex-grow: 1;
+  width: 100%; /* Force le contenu à utiliser 100% de la largeur */
+  display: flex;
+  flex-direction: column;
 }
 </style>
