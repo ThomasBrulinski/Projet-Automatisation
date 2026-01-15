@@ -1,20 +1,25 @@
-📊 DataFlow - Moniteur de Migration de Données
+**📊 DataFlow - Moniteur de Migration de Données**
+
 DataFlow est une solution full-stack conteneurisée permettant d'importer, de traiter et de visualiser des flux de migration de données à partir de fichiers CSV. L'application utilise une architecture en microservices pour garantir une séparation nette entre le traitement des fichiers, la logique métier et l'interface utilisateur.
 
-🛠️ Fonctionnalités Principales
-1. Importation Intelligente (Stream)
+**🛠️ Fonctionnalités Principales**
+
+*1. Importation Intelligente (Stream)*
+
 L'importation ne charge pas le fichier entier en mémoire. Les données sont lues par morceaux (chunks), envoyées au backend Python qui les transforme en batchs pour l'API C#.
 
 Feedback en temps réel : Une barre de progression affiche l'état d'avancement du traitement SQL.
 
-2. Visualisation et Analyse
+*2. Visualisation et Analyse*
+
 Un dashboard permet de consulter les migrations stockées avec :
 
 Recherche sur la Source.
 
 Pagination performante côté serveur (LIMIT/OFFSET) pour supporter de gros volumes de données.
 
-🛠️ Stack Technologique
+**🛠️ Stack Technologique**
+
 Proxy/Web Server : Nginx (Reverse Proxy & Static Hosting).
 
 Frontend : Vue.js 3.
@@ -25,13 +30,18 @@ Business Logic : .NET 9 Core (Entity Framework).
 
 Infrastructure : Docker Compose (4 services).
 
-🏗️ Architecture Technique (4 Conteneurs)
-L'application est orchestrée par Docker Compose et se divise en 4 services :
-Reverse Proxy (Nginx) : Le point d'entrée unique. Il redirige les requêtes selon le chemin :
-    localhost:8080/ => sert le Frontend (Vue.js => http://frontend:8081).
-    localhost:8080/api/ => Redirige vers le Backend (Python => http://backend-traitement:8000).
+**🏗️ Architecture Technique (4 Conteneurs)**
 
-🚀 Installation et Lancement
+L'application est orchestrée par Docker Compose et se divise en 4 services :
+
+Reverse Proxy (Nginx) : Le point d'entrée unique. Il redirige les requêtes selon le chemin :
+
+localhost:8080/ => sert le Frontend (Vue.js => http://frontend:8081).
+
+localhost:8080/api/ => Redirige vers le Backend (Python => http://backend-traitement:8000).
+
+**🚀 Installation et Lancement**
+
 Le projet est entièrement Dockerisé. Une seule commande suffit pour monter l'infrastructure complète (3 containers + Base de données).
 
 Prérequis
