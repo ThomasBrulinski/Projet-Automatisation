@@ -2,7 +2,7 @@ name: Build
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
@@ -37,4 +37,5 @@ jobs:
             -Dsonar.organization=thomasbrulinski
             -Dsonar.projectKey=ThomasBrulinski_Projet-Automatisation
             -Dsonar.sources=.
+
             -Dsonar.verbose=true
