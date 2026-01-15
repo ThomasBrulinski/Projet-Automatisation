@@ -11,10 +11,10 @@ public class MigrationService(IMigrationRepository migrationRepository)
         return await migrationRepository.ProcessBatchAsync(rows);
     }
 
-    public async Task<IEnumerable<MigrationDto>> GetAllMigrationAsync(int page = 0, string query = "")
+    public async Task<(IEnumerable<MigrationDto> Items, int TotalCount)> GetAllMigrationAsync(int page = 0, string query = "")
     {
         var models =  await migrationRepository.GetAllRowAsync(page, query);
-        return models.Select(m => new MigrationDto
+        return (models.Items.Select(m => new MigrationDto
         {
             MigrationStartTime = m.MigrationStartTime,
             SubJobId = m.SubJobId,
@@ -28,6 +28,6 @@ public class MigrationService(IMigrationRepository migrationRepository)
             Size = m.Size,
             ErrorCode = m.ErrorCode,
             Comment = m.Comment
-        });
+        }), models.TotalCount);
     }
 }

@@ -7,16 +7,26 @@ namespace app.repositories.classes;
 
 public class MigrationRepository(AppDbContext context) : IMigrationRepository
 {
-    public async Task<IEnumerable<MigrationModel>> GetAllRowAsync(int page = 0, string query = "")
+    public async Task<(IEnumerable<MigrationModel> Items, int TotalCount)> GetAllRowAsync(int page = 0, string query = "")
     {
         const int pageSize = 20;
 
-        return await context.MigrationModels
-            .Where(m => m.Source.Contains(query))
+        // 1. On prépare la requête de base avec le filtre
+        var baseQuery = context.MigrationModels
+            .Where(m => m.Source.Contains(query));
+
+        // 2. On compte le total global correspondant à la recherche (sans pagination)
+        int totalCount = await baseQuery.CountAsync();
+
+        // 3. On récupère uniquement les 20 lignes de la page demandée
+        var items = await baseQuery
             .OrderByDescending(m => m.MigrationStartTime) 
             .Skip(page * pageSize)
             .Take(pageSize)         
             .ToListAsync();
+
+        // 4. On renvoie les deux informations
+        return (items, totalCount);
     }
     
     // On change le type de retour en Task<(int inserted, int skipped)>

@@ -1,45 +1,55 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const message = ref("");
 const migrations = ref([]);
+const pagination = ref({ total: 0, debut: 0, fin: 0 });
 const isLoadingData = ref(false);
 const currentPage = ref(0); 
 const searchQuery = ref("");
+const message = ref("");
 
 const fetchMigrations = async (pageOffset = 0) => {
   const newPage = currentPage.value + pageOffset;
-  // Utilisation du chemin relatif comme convenu précédemment
   const apiUrl = "/api/files/";
   
   if (newPage < 0) return;
 
   isLoadingData.value = true;
-  message.value = ""; // Reset message
-
   try {
     const response = await fetch(`${apiUrl}?page=${newPage}&query=${encodeURIComponent(searchQuery.value)}`);
-    
     if (!response.ok) throw new Error("Erreur serveur");
     
-    const data = await response.json();
+    const result = await response.json();
     
-    if (data.length > 0) {
-      migrations.value = data;
+    // Accès aux données via data.data conformément à ton DTO C#
+    const payload = result.data; 
+
+    if (payload.migrations && payload.migrations.length > 0) {
+      migrations.value = payload.migrations;
+      // Mise à jour des métadonnées pour l'affichage "X - Y sur Z"
+      pagination.value = {
+        total: payload.totalCount,
+        debut: payload.debut,
+        fin: payload.fin
+      };
       currentPage.value = newPage;
     } else if (pageOffset === 0) {
-      migrations.value = []; // Recherche vide
-    } else {
-      // On garde les anciennes données si on est en bout de liste
-      // mais on peut notifier l'utilisateur (toast ou autre)
+      migrations.value = [];
+      pagination.value = { total: 0, debut: 0, fin: 0 };
     }
   } catch (error) {
-    message.value = "Impossible de contacter le serveur.";
+    message.value = "Erreur de chargement des données.";
     console.error(error);
   } finally {
     isLoadingData.value = false;
   }
 };
+
+// Texte dynamique pour le footer
+const paginationLabel = computed(() => {
+  if (pagination.value.total === 0) return "0 - 0 sur 0";
+  return `${pagination.value.debut} - ${pagination.value.fin} sur ${pagination.value.total}`;
+});
 </script>
 
 <template>
@@ -136,23 +146,27 @@ const fetchMigrations = async (pageOffset = 0) => {
         </div>
 
         <div class="pagination-footer">
-          <button 
-            @click="() => fetchMigrations(-1)" 
-            :disabled="currentPage === 0 || isLoadingData"
-            class="btn-nav"
-          >
-            &larr; Précédent
-          </button>
-          
-          <span class="page-indicator">Page {{ currentPage + 1 }}</span>
-          
-          <button 
-            @click="() => fetchMigrations(1)" 
-            :disabled="isLoadingData || migrations.length < 20"
-            class="btn-nav"
-          >
-            Suivant &rarr;
-          </button>
+          <span class="page-range-info">{{ paginationLabel }}</span>
+
+          <div class="nav-controls">
+            <button 
+              @click="() => fetchMigrations(-1)" 
+              :disabled="currentPage === 0 || isLoadingData"
+              class="btn-nav"
+            >
+              &larr; Précédent
+            </button>
+            
+            <span class="page-indicator">Page {{ currentPage + 1 }}</span>
+            
+            <button 
+              @click="() => fetchMigrations(1)" 
+              :disabled="isLoadingData || pagination.fin >= pagination.total"
+              class="btn-nav"
+            >
+              Suivant &rarr;
+            </button>
+          </div>
         </div>
       </div>
     </main>
@@ -371,7 +385,18 @@ const fetchMigrations = async (pageOffset = 0) => {
   background-color: white;
   border-top: 1px solid #e5e7eb;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between; /* Aligne le texte à gauche et les boutons à droite */
+  align-items: center;
+}
+
+.page-range-info {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.nav-controls {
+  display: flex;
   align-items: center;
   gap: 15px;
 }

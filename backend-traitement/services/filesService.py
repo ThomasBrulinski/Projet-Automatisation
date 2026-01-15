@@ -81,9 +81,10 @@ class FilesService:
                         r = requests.post(csharp_url, json=batch, timeout=5)
 
                         # --- RÉCUPÉRATION DES STATS DU C# ---
-                        response_data = r.json() # On récupère { "inserted": X, "skipped": Y }
-                        total_inserted += response_data.get("inserted", 0)
-                        total_skipped += response_data.get("skipped", 0)
+                        response_data = r.json() 
+                        stats = response_data.get("data", {})
+                        total_inserted += stats.get("inserted", 0)
+                        total_skipped += stats.get("skipped", 0)
                         # ------------------------------------
                         
                         # Si le C# renvoie une erreur 400 (Validation), on capture le détail

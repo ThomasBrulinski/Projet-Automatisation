@@ -1,4 +1,6 @@
+using app.dtos;
 using app.models;
+using app.responses;
 using app.services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,7 +13,14 @@ public class MigrationController(MigrationService migrationService) : Controller
     [HttpGet]
     public async Task<IActionResult> GetAllRow([FromQuery] int page = 0, [FromQuery] string query = "")
     {
-        var res = await migrationService.GetAllMigrationAsync(page, query);
+        var data = await migrationService.GetAllMigrationAsync(page, query);
+        var dataList = data.Items.ToList();
+        var res = new ApiResponse<GetMigrationDto>
+            (
+                200, 
+                "Données récupérées avec succès", 
+                new GetMigrationDto(dataList, data.TotalCount, page*20, page*20 + 20)
+            );
         return Ok(res);
     }
     
@@ -34,11 +43,17 @@ public class MigrationController(MigrationService migrationService) : Controller
         {
             (int, int) res = await migrationService.ProcessBatchAsync(rows);
 
-            return Ok(new { 
-                message = "Données reçues et validées", 
-                inserted = res.Item1, 
-                skipped = res.Item2,
-            });
+            var response = new ApiResponse<ImportResultDto>
+            (
+                200, 
+                "Traitement terminé",
+                new ImportResultDto
+                {
+                    Inserted = res.Item1,
+                    Skipped = res.Item2
+                }
+            );
+            return Ok(response);
         }
         catch (Exception ex)
         {
