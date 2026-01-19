@@ -114,9 +114,9 @@ class FilesService:
             return generate()
 
         except Exception as e:
-            def error_gen():
+            def error_gen(e):
                 yield json.dumps({"error": "Erreur de lecture fichier", "details": str(e)}) + "\n"
-            return error_gen()
+            return error_gen(e)
     
     def load_data_from_db(self, page, query):
         base_url = os.environ.get('C_SHARP_URL')
