@@ -49,9 +49,6 @@ body, html {
 
 /* Header Fixe */
 .navbar {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
   background-color: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid #e5e7eb;

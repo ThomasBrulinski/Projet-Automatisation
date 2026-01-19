@@ -40,9 +40,17 @@ localhost:8080/ => sert le Frontend (Vue.js => http://frontend:8081).
 
 localhost:8080/api/ => Redirige vers le Backend (Python => http://backend-traitement:8000).
 
+**🏗️ Stratégie d'Abstraction : Le Pattern DTO**
+
+Le service C# agit comme un filtre de sécurité et de clarté.
+
+MigrationModel (Interne) : Contient les clés primaires (UUID/ID), les hashs de vérification d'intégrité et les métadonnées techniques de la base SQL.
+
+MigrationDto (Externe) : Contient uniquement ce qui est nécessaire au dashboard Vue.js (Dates, Titre, Source, Statut).
+
 **🚀 Installation et Lancement**
 
-Le projet est entièrement Dockerisé. Une seule commande suffit pour monter l'infrastructure complète (3 containers + Base de données).
+Le projet est entièrement Dockerisé. Une seule commande suffit pour monter l'infrastructure complète (4 containers + Base de données).
 
 Prérequis
 Docker et Docker Compose installés sur votre machine.

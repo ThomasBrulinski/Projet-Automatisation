@@ -34,12 +34,11 @@ a,
 @media (min-width: 1024px) {
   body {
     display: flex;
-    place-items: center;
+    place-items: flex-start;
   }
 
   #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: block;
     padding: 0 2rem;
   }
 }
