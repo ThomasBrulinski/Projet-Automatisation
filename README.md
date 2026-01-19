@@ -1,3 +1,7 @@
+**IGOUFE Valentin**
+**BRULINSKI Thomas**
+**Groupe 1**
+
 **📊 DataFlow - Moniteur de Migration de Données**
 
 DataFlow est une solution full-stack conteneurisée permettant d'importer, de traiter et de visualiser des flux de migration de données à partir de fichiers CSV. L'application utilise une architecture en microservices pour garantir une séparation nette entre le traitement des fichiers, la logique métier et l'interface utilisateur.
