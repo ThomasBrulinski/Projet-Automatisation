@@ -13,8 +13,31 @@ def upload_csv():
     
     file = request.files['file']
     
+    # Vérifier si le premier chunk contient une erreur
+    generator = service.read_csv_and_stream(file)
+    first_chunk_str = None
+    
+    try:
+        first_chunk_str = next(generator)
+        first_chunk = json.loads(first_chunk_str)
+        
+        if "error" in first_chunk:
+            # Erreur détectée, retourner 400
+            return {"error": first_chunk.get("error"), "details": first_chunk.get("details")}, 400
+    except StopIteration:
+        pass
+    except json.JSONDecodeError:
+        pass
+    
+    # Sinon, streamer normalement
+    def stream_result():
+        if first_chunk_str:
+            yield first_chunk_str
+        for chunk in generator:
+            yield chunk
+    
     return Response(
-        service.read_csv_and_stream(file),
+        stream_result(),
         mimetype='application/json'
     )
 

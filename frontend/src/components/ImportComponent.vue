@@ -40,7 +40,10 @@ const uploadFile = async () => {
       body: formData,
     });
 
-    if (!response.ok) throw new Error("Erreur lors de l'envoi");
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Erreur lors de l'envoi");
+    }
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
@@ -69,7 +72,7 @@ const uploadFile = async () => {
       }
     }
   } catch (error) {
-    message.value = "Échec de la connexion au serveur.";
+    message.value = error.message || "Échec de la connexion au serveur.";
     messageType.value = "error";
   } finally {
     isUploading.value = false;
