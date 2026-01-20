@@ -25,7 +25,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend-traitement/requirements.txt
+          pip install -r backend-traitement/app/requirements.txt
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
