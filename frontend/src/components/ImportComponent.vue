@@ -1,82 +1,31 @@
 <script setup>
-import { ref } from 'vue';
+import { computed } from 'vue';
+import { useImportStore } from '@/stores/importStore';
 
-const selectedFile = ref(null);
-const message = ref("");
-const isUploading = ref(false);
-const progressValue = ref(0);
-const dragActive = ref(false);
-const messageType = ref(""); // 'success' ou 'error'
+const store = useImportStore();
+
+const selectedFile = computed(() => store.selectedFile);
+const message = computed(() => store.message);
+const isUploading = computed(() => store.isUploading);
+const progressValue = computed(() => store.progressValue);
+const dragActive = computed(() => store.dragActive);
+const messageType = computed(() => store.messageType);
 
 const handleFileChange = (event) => {
   const file = event.target.files[0] || event.dataTransfer.files[0];
-  
-  if (file && (file.type === "text/csv" || file.name.endsWith('.csv'))) {
-    selectedFile.value = file;
-    message.value = "";
-    progressValue.value = 0;
-  } else {
-    selectedFile.value = null;
-    message.value = "Format invalide. Veuillez sélectionner un fichier CSV.";
-    messageType.value = "error";
-  }
-  dragActive.value = false;
+  store.handleFileChange(file);
 };
 
-const uploadFile = async () => {
-  if (!selectedFile.value) return;
+const uploadFile = () => {
+  store.uploadFile();
+};
 
-  isUploading.value = true;
-  message.value = ""; // Clear previous messages
-  progressValue.value = 0;
-  
-  const formData = new FormData();
-  formData.append('file', selectedFile.value);
+const clearFile = () => {
+  store.clearFile();
+};
 
-  try {
-    const apiUrl = "/api/files/";
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Erreur lors de l'envoi");
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n');
-
-      for (const line of lines) {
-        if (line.trim()) {
-          try {
-            const data = JSON.parse(line);
-            if (data.progress !== undefined) progressValue.value = data.progress;
-            if (data.complete) {
-              message.value = `Succès ! ${data.inserted} lignes importées.`;
-              messageType.value = "success";
-              selectedFile.value = null;
-              // On laisse la barre à 100% un instant pour le visuel
-              progressValue.value = 100;
-            }
-          } catch (e) { /* Ignorer les chunks partiels */ }
-        }
-      }
-    }
-  } catch (error) {
-    message.value = error.message || "Échec de la connexion au serveur.";
-    messageType.value = "error";
-  } finally {
-    isUploading.value = false;
-  }
+const setDragActive = (value) => {
+  store.setDragActive(value);
 };
 </script>
 
@@ -97,8 +46,8 @@ const uploadFile = async () => {
       </div>
 
       <div 
-        @dragover.prevent="dragActive = true" 
-        @dragleave.prevent="dragActive = false" 
+        @dragover.prevent="setDragActive(true)" 
+        @dragleave.prevent="setDragActive(false)" 
         @drop.prevent="handleFileChange"
         :class="['drop-zone', { 'active': dragActive, 'has-file': selectedFile }]"
       >
@@ -121,7 +70,7 @@ const uploadFile = async () => {
             <span class="file-name">{{ selectedFile.name }}</span>
             <span class="file-size">{{ (selectedFile.size / 1024).toFixed(1) }} KB</span>
           </div>
-          <button @click.prevent="selectedFile = null" class="btn-remove">✕</button>
+          <button @click.prevent="clearFile" class="btn-remove">✕</button>
         </div>
       </div>
 

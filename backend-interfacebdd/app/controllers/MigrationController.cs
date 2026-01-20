@@ -15,11 +15,14 @@ public class MigrationController(MigrationService migrationService) : Controller
     {
         var data = await migrationService.GetAllMigrationAsync(page, query);
         var dataList = data.Items.ToList();
+        int TotalCount = data.TotalCount;
+        int debut = page*20;
+        int fin = (debut + 19) > TotalCount ? TotalCount : (debut + 19);
         var res = new ApiResponse<GetMigrationDto>
             (
                 200, 
                 "Données récupérées avec succès", 
-                new GetMigrationDto(dataList, data.TotalCount, page*20, page*20 + 20)
+                new GetMigrationDto(dataList, TotalCount, debut, fin)
             );
         return Ok(res);
     }
@@ -45,7 +48,7 @@ public class MigrationController(MigrationService migrationService) : Controller
 
             var response = new ApiResponse<ImportResultDto>
             (
-                200, 
+                201, 
                 "Traitement terminé",
                 new ImportResultDto
                 {

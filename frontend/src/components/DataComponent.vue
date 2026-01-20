@@ -1,49 +1,26 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { computed, onMounted } from 'vue';
+import { useMigrationStore } from '@/stores/migrationStore';
 
-const migrations = ref([]);
-const pagination = ref({ total: 0, debut: 0, fin: 0 });
-const isLoadingData = ref(false);
-const currentPage = ref(0); 
-const searchQuery = ref("");
-const message = ref("");
+const store = useMigrationStore();
 
-const fetchMigrations = async (pageOffset = 0) => {
-  const newPage = currentPage.value + pageOffset;
-  const apiUrl = "/api/files/";
-  
-  if (newPage < 0) return;
+// Accès aux variables du store
+const migrations = computed(() => store.migrations);
+const pagination = computed(() => store.pagination);
+const isLoadingData = computed(() => store.isLoading);
+const currentPage = computed(() => store.currentPage);
+const searchQuery = computed({
+  get: () => store.searchQuery,
+  set: (value) => store.setSearchQuery(value)
+});
+const message = computed(() => store.message);
 
-  isLoadingData.value = true;
-  try {
-    const response = await fetch(`${apiUrl}?page=${newPage}&query=${encodeURIComponent(searchQuery.value)}`);
-    if (!response.ok) throw new Error("Erreur serveur");
-    
-    const result = await response.json();
-    
-    // Accès aux données via data.data conformément à ton DTO C#
-    const payload = result.data; 
-
-    if (payload.migrations && payload.migrations.length > 0) {
-      migrations.value = payload.migrations;
-      // Mise à jour des métadonnées pour l'affichage "X - Y sur Z"
-      pagination.value = {
-        total: payload.totalCount,
-        debut: payload.debut,
-        fin: payload.fin
-      };
-      currentPage.value = newPage;
-    } else if (pageOffset === 0) {
-      migrations.value = [];
-      pagination.value = { total: 0, debut: 0, fin: 0 };
-    }
-  } catch (error) {
-    message.value = "Erreur de chargement des données.";
-    console.error(error);
-  } finally {
-    isLoadingData.value = false;
+// Charger les données une seule fois au montage du composant
+onMounted(() => {
+  if (store.migrations.length === 0) {
+    store.fetchMigrations(0);
   }
-};
+});
 
 // Texte dynamique pour le footer
 const paginationLabel = computed(() => {
@@ -68,13 +45,13 @@ const paginationLabel = computed(() => {
             v-model="searchQuery" 
             type="text" 
             placeholder="Rechercher (Source)" 
-            @keyup.enter="() => fetchMigrations(0)"
+            @keypress.enter="() => store.fetchMigrations(0)"
             class="search-input"
           />
         </div>
         
         <button 
-          @click="() => fetchMigrations(0)"
+          @click="() => store.fetchMigrations(0)"
           :disabled="isLoadingData"
           class="btn-primary"
         >
@@ -90,7 +67,7 @@ const paginationLabel = computed(() => {
         <div class="empty-icon">📁</div>
         <h3>Aucune donnée à afficher</h3>
         <p>Lancez une recherche ou cliquez sur Actualiser pour voir les migrations.</p>
-        <button @click="() => fetchMigrations(0)" class="btn-secondary">Charger les données</button>
+        <button @click="() => store.fetchMigrations(0)" class="btn-secondary">Charger les données</button>
       </div>
 
       <div v-else class="table-card">
@@ -150,7 +127,7 @@ const paginationLabel = computed(() => {
 
           <div class="nav-controls">
             <button 
-              @click="() => fetchMigrations(-1)" 
+              @click="() => store.fetchMigrations(-1)" 
               :disabled="currentPage === 0 || isLoadingData"
               class="btn-nav"
             >
@@ -160,7 +137,7 @@ const paginationLabel = computed(() => {
             <span class="page-indicator">Page {{ currentPage + 1 }}</span>
             
             <button 
-              @click="() => fetchMigrations(1)" 
+              @click="() => store.fetchMigrations(1)" 
               :disabled="isLoadingData || pagination.fin >= pagination.total"
               class="btn-nav"
             >

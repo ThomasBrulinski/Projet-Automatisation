@@ -6,7 +6,7 @@ import hashlib
 import os
 
 class FilesService:
-    def read_csv_and_stream(self, file, batch_size=50):
+    def read_csv_and_stream(self, file, batch_size=100):
         def generate_row_hash(row):
             # On choisit les colonnes qui définissent l'unicité
             # On concatène les valeurs en une seule chaîne
@@ -133,5 +133,4 @@ class FilesService:
             r.raise_for_status()
             return r.json() # On renvoie la liste Python brute
         except requests.exceptions.RequestException as e:
-            print(f"Erreur : {e}")
             return [] # On renvoie une liste vide propre

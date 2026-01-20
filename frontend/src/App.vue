@@ -15,7 +15,9 @@
     </header>
 
     <main class="main-content">
-      <RouterView />
+      <KeepAlive>
+        <RouterView />
+      </KeepAlive>
     </main>
   </div>
 </template>
